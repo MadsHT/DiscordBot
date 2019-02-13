@@ -121,7 +121,10 @@ namespace Example.Modules
 
                 if (theOne != null)
                 {
-                    msg += "Found the One: " + theOne["release_name"] + "\n\n";
+                    msg += "Found the One: " + theOne["release_name"] 
+                                             + " Size: " + theOne["size"] 
+                                             + " Seeds: " + theOne["seeders"];
+                    
                     await ReplyAsync($"```{msg}```");
 
                     using (var client = new WebClient())
