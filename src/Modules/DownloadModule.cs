@@ -55,8 +55,8 @@ namespace Example.Modules
             if (!User.Roles.Contains(role))
             {
                 await ReplyAsync(
-                    "You do not have the required permission to use this command, please contact system admin");s
-                return,
+                    "You do not have the required permission to use this command, please contact system admin");
+                return;
             }
             
             JToken toDo = SortList(imdbLink).Result;
