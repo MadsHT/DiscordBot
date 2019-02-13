@@ -50,7 +50,7 @@ namespace Example.Modules
         {
 
             var User = Context.User as SocketGuildUser;
-            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer");
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer" || x.Name == "Admin");
 
             if (!User.Roles.Contains(role))
             {
