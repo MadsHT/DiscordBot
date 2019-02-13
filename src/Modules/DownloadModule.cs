@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -44,18 +47,36 @@ namespace Example.Modules
         [RequireUserPermission(GuildPermission.Administrator)]
         public async Task GetDownloadLinks(string imdbLink)
         {
-            JObject jo;
+            JToken toDo = SortList(imdbLink).Result;
             
-            Regex uniRegex = new Regex(@".*1080p.WEB-DL.H.*264-UNi.*");
-            Regex uniBlurRegex = new Regex(@".*BLUR.1080p.HDRip.x264-UNi.*");
-            Regex rapidRegex = new Regex(@".*NORDiC.1080p.WEB-DL.H.264-RAPiDCOWS");
+            if (toDo != null)
+            {
+                await ReplyAsync($"Starting upload to serve");
+                using (var client = new WebClient())
+                {
+                    client.Credentials = new NetworkCredential(_config["ftpUser"], _config["ftpPass"]);
+                    client.UploadFile(
+                        "ftp://" + _config["serverName"] + "/Download/torrents/" + toDo["release_name"].ToString() +
+                        ".torrent",
+                        WebRequestMethods.Ftp.UploadFile,
+                        "./" + toDo["release_name"].ToString() + ".torrent");
+                }
+
+                System.IO.File.Delete("./" + toDo["release_name"].ToString() + ".torrent");
+                await ReplyAsync($"upload done.");
+            }
+        }
+
+        public async Task<JToken> SortList(string imdbLink)
+        {
+            JObject jo;
 
             if (!imdbLink.Contains("https://www.imdb.com/title/"))
             {
                 await ReplyAsync($"Given link is not from imdb");
-                return;
+                return null;
             }
-            
+
             imdbLink = imdbLink.Split("title/")[1].Split("/")[0];
 
             await ReplyAsync($"Looking for movie..");
@@ -64,55 +85,65 @@ namespace Example.Modules
             if (response.IsSuccessStatusCode)
             {
                 jo = JObject.Parse(await response.Content.ReadAsStringAsync());
-                
-                JArray ja = JArray.FromObject(jo.First.First);
 
-                JToken toDo = null;
-               
-                await ReplyAsync($"I found {ja.Count} plausibilities");
-                
-                foreach (var token in ja)
+                JArray ja = null;
+
+                if (jo.First.First.HasValues)
                 {
-                    
-                    if (uniRegex.Match(token["release_name"].ToString()).Success
-                        || uniBlurRegex.Match(token["release_name"].ToString()).Success
-                        || rapidRegex.Match(token["release_name"].ToString()).Success) 
-                    {
-                        await ReplyAsync($"Found movie");
-                        using (var client = new WebClient())
-                        {
-                            client.DownloadFile(token["download_url"].ToString(),
-                                "./" + token["release_name"].ToString() + ".torrent");
-                        }
-
-                        toDo = token;
-                        break;
-                    }
-                }
-
-                if (toDo != null)
-                {
-                    await ReplyAsync($"Starting upload to serve");
-                    using (var client = new WebClient())
-                    {
-                        client.Credentials = new NetworkCredential(_config["ftpUser"], _config["ftpPass"]);
-                        client.UploadFile("ftp://" + _config["serverName"] + "/Download/torrents/" + toDo["release_name"].ToString() + ".torrent",
-                            WebRequestMethods.Ftp.UploadFile,
-                            "./" + toDo["release_name"].ToString() + ".torrent");
-                    }
-                    System.IO.File.Delete("./" + toDo["release_name"].ToString() + ".torrent");
-                    await ReplyAsync($"upload done.");
+                    ja = JArray.FromObject(jo.First.First);
                 }
                 else
                 {
-                    await ReplyAsync($"No file found");
-                    return;
+                    await ReplyAsync("Nothing was found");
+                    return null;
                 }
+
+                await ReplyAsync($"I found {ja.Count} plausibilities, sorting list");
+
+                List<JToken> tokenList = ja.ToList();
+
+                tokenList.RemoveAll(token => !token["release_name"].ToString().Contains("1080p")
+                                             || int.Parse(token["size"].ToString()) > 10000);
+
+                if (tokenList.Count == 0)
+                {
+                    await ReplyAsync("Couldn't find suitable file");
+                    return null;
+                }
+
+                tokenList = tokenList.OrderBy(size => size["seeders"]).ThenBy(seed => seed["size"]).ToList();
+
+                JToken theOne = tokenList.FirstOrDefault(token =>
+                    token["release_name"].ToString().ToLower().Contains("uni")
+                    || token["release_name"].ToString().ToLower().Contains("rapi"));
+
+                string msg = "";
+
+                if (theOne != null)
+                {
+                    msg += "Found the One: " + theOne["release_name"] + "\n\n";
+                    await ReplyAsync($"```{msg}```");
+
+                    using (var client = new WebClient())
+                    {
+                        client.DownloadFile(theOne["download_url"].ToString(),
+                            "./" + theOne["release_name"].ToString() + ".torrent");
+                    }
+                    
+                    return theOne;
+                }
+                else
+                {
+                    await ReplyAsync("There was a problem with the download");
+                    return null;
+                }
+
+                
             }
             else
             {
                 await ReplyAsync("Couldn't find any movies with that ID");
-                return;
+                return null;
             }
         }
     }
