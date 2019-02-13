@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 
@@ -44,9 +45,20 @@ namespace Example.Modules
 
         [Command("download"), Alias("dl")]
         [Summary("I Will search for 1080p movies at reputable sources")]
-        [RequireUserPermission(GuildPermission.Administrator)]
+        [RequireUserPermission(ChannelPermission.Speak)]
         public async Task GetDownloadLinks(string imdbLink)
         {
+
+            var User = Context.User as SocketGuildUser;
+            var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer");
+
+            if (!User.Roles.Contains(role))
+            {
+                await ReplyAsync(
+                    "You do not have the required permission to use this command, please contact system admin");s
+                return,
+            }
+            
             JToken toDo = SortList(imdbLink).Result;
             
             if (toDo != null)
