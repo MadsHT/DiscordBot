@@ -45,7 +45,7 @@ namespace Example.Modules
 
         [Command("download"), Alias("dl")]
         [Summary("I Will search for 1080p movies at reputable sources")]
-        [RequireUserPermission(ChannelPermission.Speak)]
+        [RequireUserPermission(GuildPermission.SendMessages)]
         public async Task GetDownloadLinks(string imdbLink)
         {
 
