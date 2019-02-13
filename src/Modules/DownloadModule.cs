@@ -50,9 +50,10 @@ namespace Example.Modules
         {
 
             var User = Context.User as SocketGuildUser;
-            //var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer");
+            var rolePlex = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer");
+            var roleAdmin = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Admin");
 
-            if (!User.Roles.Any(role => role.Name == "Plexer") || !User.Roles.Any(role => role.Name == "Admin"))
+            if (!User.Roles.Contains(rolePlex) || !User.Roles.Contains(roleAdmin))
             {
                 await ReplyAsync(
                     "You do not have the required permission to use this command, please contact system admin");
