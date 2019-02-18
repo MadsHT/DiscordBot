@@ -131,8 +131,15 @@ namespace Example.Modules
 
                 string msg = "";
 
+                if (tokenList.Count != 0 && theOne == null)
+                {
+                    await ReplyAsync("Found file. OBS ratio could become a problem");
+                    theOne = tokenList.FirstOrDefault();
+                } 
+                
                 if (theOne != null)
                 {
+                    
                     msg += "Found the One: " + theOne["release_name"] 
                                              + " Size: " + theOne["size"] 
                                              + " Seeds: " + theOne["seeders"];
