@@ -124,7 +124,6 @@ namespace Example.Modules
 
             msg = await ReplyAsync(handMsg);
             //Player has opportunity to draw
-            bool end = false;
             while (true)
             {
                 handMsg = "";
@@ -184,19 +183,16 @@ namespace Example.Modules
             if (playerPoints == 21)
             {
                 //player win
-                Console.WriteLine("player win");
                 handMsg = $"The player won with {playerPoints} against the dealers {dealerPoints}";
             }
             else if (dealerPoints == 21)
             {
                 //dealer win
-                Console.WriteLine("dealer win");
                 handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
             }
             else if(playerPoints == 21 && dealerPoints == 21)
             {
                 //dealer win
-                Console.WriteLine("dealer win");
                 handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
             }
             else
@@ -204,25 +200,21 @@ namespace Example.Modules
                 if (dealerPoints > 21 && playerPoints < 22)
                 {
                     //player win
-                    Console.WriteLine("player win");
                     handMsg = $"The player won with {playerPoints} against the dealers {dealerPoints}";
                 }
                 else if (playerPoints > 21 && dealerPoints < 22)
                 {
                     //dealer win
-                    Console.WriteLine("dealer win");
                     handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
                 }
                 else if (playerPoints > 21 && dealerPoints > 22)
                 {
                     //dealer win
-                    Console.WriteLine("dealer win");
                     handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
                 }
                 else if (playerPoints == dealerPoints)
                 {
                     //dealer win
-                    Console.WriteLine("dealer win");
                     handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
                 }
                 else
@@ -230,13 +222,11 @@ namespace Example.Modules
                     if (playerPoints > dealerPoints && playerPoints < 22)
                     {
                         //player win
-                        Console.WriteLine("player win");
                         handMsg = $"The player won with {playerPoints} against the dealers {dealerPoints}";
                     }
                     else if (dealerPoints > playerPoints && dealerPoints < 22)
                     {
                         //dealer win
-                        Console.WriteLine("dealer win");
                         handMsg = $"The dealer won with {dealerPoints} against you {playerPoints}";
                     }
                 }
