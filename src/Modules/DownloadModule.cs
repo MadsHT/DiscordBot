@@ -48,7 +48,7 @@ namespace Example.Modules
         [RequireUserPermission(GuildPermission.SendMessages)]
         public async Task GetDownloadLinks(string imdbLink)
         {
-
+            //TODO make optional parameters
             var User = Context.User as SocketGuildUser;
             var role = Context.Guild.Roles.FirstOrDefault(x => x.Name == "Plexer");
 
