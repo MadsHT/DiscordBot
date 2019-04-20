@@ -79,7 +79,7 @@ namespace Example.Modules {
             if (imdbLink.Contains ("https://www.imdb.com/title/")) {
                 imdbLink = imdbLink.Split ("title/") [1].Split ("/") [0];
             } else if (imdbLink.Contains ("tt")) {
-                
+
             } else {
                 await ReplyAsync ($"Given link is not from imdb");
                 return null;
@@ -107,7 +107,7 @@ namespace Example.Modules {
 
                 //Removes all non 1080p movies or are larger then 20GB or has no seeders
                 tokenList.RemoveAll (token => !token["release_name"].ToString ().Contains ("1080p") ||
-                    int.Parse (token["size"].ToString ()) > 20000 || int.Parse(token["seeders"].string) < 0);
+                    int.Parse (token["size"].ToString ()) > 20000 || int.Parse (token["seeders"].ToString ()) < 0);
 
                 if (tokenList.Count == 0) {
                     await ReplyAsync ("Couldn't find suitable file");
