@@ -53,7 +53,7 @@ namespace Example.Modules {
             }
 
             JToken toDo = SortList (imdbLink).Result;
-
+            
             if (toDo != null) {
                 await ReplyAsync ($"Starting upload to serve");
                 using (var client = new WebClient ()) {
@@ -115,7 +115,7 @@ namespace Example.Modules {
                 }
 
                 //Order the list by seeders then by size.
-                tokenList = tokenList.OrderBy (size => size["seeders"]).ThenBy (seed => seed["size"]).ToList ();
+                tokenList = tokenList.OrderByDescending(seed => seed["seeders"]).ThenByDescending(size => size["size"]).ToList ();
 
                 //Checks if there is any from unitail or rapidcows
                 JToken theOne = tokenList.FirstOrDefault (token =>
