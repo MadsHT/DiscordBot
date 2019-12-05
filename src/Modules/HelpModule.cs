@@ -30,31 +30,27 @@ namespace Example.Modules
                 Color = new Color(114, 137, 218),
                 Description = "These are the commands you can use"
             };
-            
+
             foreach (var module in _service.Modules)
             {
                 string description = null;
 
-                if (!module.Name.Equals("Example"))
+                foreach (var cmd in module.Commands)
                 {
-                    foreach (var cmd in module.Commands)
+                    var result = await cmd.CheckPreconditionsAsync(Context);
+                    var par = string.Join(", ", cmd.Parameters.Select(p => p.Name));
+                    if (result.IsSuccess)
+                        description += $"{prefix}{cmd.Aliases.First()}";
+                    if (!String.IsNullOrEmpty(par))
                     {
-                        var result = await cmd.CheckPreconditionsAsync(Context);
-                        var par = string.Join(", ", cmd.Parameters.Select(p => p.Name));
-                        if (result.IsSuccess)
-                            description += $"{prefix}{cmd.Aliases.First()}";
-                        if (!String.IsNullOrEmpty(par))
-                        {
-                            description += $" [{par}]\n";
-                        }
-                        else
-                        {
-                            description += $"\n";
-                        }
-                        
+                        description += $" [{par}]\n";
                     }
-                    
+                    else
+                    {
+                        description += $"\n";
+                    }
                 }
+
                 if (!string.IsNullOrWhiteSpace(description))
                 {
                     builder.AddField(x =>
@@ -94,7 +90,7 @@ namespace Example.Modules
                 builder.AddField(x =>
                 {
                     x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" + 
+                    x.Value = $"Parameters: {string.Join(", ", cmd.Parameters.Select(p => p.Name))}\n" +
                               $"Summary: {cmd.Summary}";
                     x.IsInline = false;
                 });
