@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
@@ -22,7 +19,6 @@ namespace Example.Modules
     {
         private readonly IConfigurationRoot _config;
         private static HttpClient http = new HttpClient();
-        private int retryCount = 0;
 
         public DownloadModule(IConfigurationRoot config)
         {
@@ -46,6 +42,10 @@ namespace Example.Modules
             }
 
             JToken movieToken = SortList(imdbLink, _config["ImdbPath"]).Result;
+
+            if(movieToken == null) {
+                return;
+            }
 
             RetriveAndUploadFile(movieToken);
         }
@@ -155,25 +155,37 @@ namespace Example.Modules
 
         private async void RetriveAndUploadFile(JToken suitableEntry)
         {
+            int retryCount = 0;
+            int msBeforeRetry = 2000;
+            
             if (suitableEntry == null) {
                 await ReplyAsync("There was a problem downloading the '.Torrent file'");
                 return;
             }
-            await ReplyAsync("downloading file");
+
+            await ReplyAsync("Trying to download file");
             using (var client = new WebClient())
             {
-                try
-                {
-                    await client.DownloadFileTaskAsync(suitableEntry["download_url"].ToString(),
-                   "./" + suitableEntry["release_name"].ToString() + ".torrent");
+                while(retryCount++ <= 5) {
+                    try
+                    {
+                        await client.DownloadFileTaskAsync(suitableEntry["download_url"].ToString(),
+                        "./" + suitableEntry["release_name"].ToString() + ".torrent");
+                    
+                        break;
+                    }
+                    catch (WebException)
+                    {
+                        Thread.Sleep(msBeforeRetry);
+                    }
                 }
-                catch (WebException)
-                {
-                    await ReplyAsync("There was a problem downloading the '.Torrent file', try again");
+
+                if(retryCount > 5) {
+                    await ReplyAsync("There was a problem downloading the '.torrent' file");
                     return;
-                }
+                } 
+
                 await UploadFile(suitableEntry, client);
-                await ReplyAsync("Upload complete");
             }
         }
 
@@ -194,6 +206,7 @@ namespace Example.Modules
                 //Removes the file from bot storage
                 System.IO.File.Delete("./" + movieToken["release_name"].ToString() + ".torrent");
             }
+            await ReplyAsync("Upload complete");
         }
 
     }
