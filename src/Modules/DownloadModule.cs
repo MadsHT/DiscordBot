@@ -170,6 +170,7 @@ namespace Example.Modules
                 catch (WebException)
                 {
                     await ReplyAsync("There was a problem downloading the '.Torrent file', try again");
+                    return;
                 }
                 await UploadFile(suitableEntry, client);
                 await ReplyAsync("Upload complete");
