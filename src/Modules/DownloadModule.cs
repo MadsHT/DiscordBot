@@ -22,6 +22,7 @@ namespace Example.Modules
     {
         private readonly IConfigurationRoot _config;
         private static HttpClient http = new HttpClient();
+        private int retryCount = 0;
 
         public DownloadModule(IConfigurationRoot config)
         {
@@ -154,12 +155,22 @@ namespace Example.Modules
 
         private async void RetriveAndUploadFile(JToken suitableEntry)
         {
+            if (suitableEntry == null) {
+                await ReplyAsync("There was a problem downloading the '.Torrent file'");
+                return;
+            }
             await ReplyAsync("downloading file");
             using (var client = new WebClient())
             {
-                await client.DownloadFileTaskAsync(suitableEntry["download_url"].ToString(),
+                try
+                {
+                    await client.DownloadFileTaskAsync(suitableEntry["download_url"].ToString(),
                    "./" + suitableEntry["release_name"].ToString() + ".torrent");
-
+                }
+                catch (WebException)
+                {
+                    await ReplyAsync("There was a problem downloading the '.Torrent file', try again");
+                }
                 await UploadFile(suitableEntry, client);
                 await ReplyAsync("Upload complete");
             }
